@@ -3,7 +3,7 @@ module github.com/go-enjin/examples/be/transforms
 go 1.17
 
 require (
-	github.com/go-enjin/be v0.0.0-20220308204746-70f9321b2598
+	github.com/go-enjin/be v0.0.0-20220317193321-35f0bbd43f2d
 	github.com/go-enjin/third_party/features/outputs/sass v0.0.0-20220308211524-081a9a6fc99c
 )
 
@@ -19,10 +19,10 @@ require (
 	github.com/go-chi/chi/v5 v5.0.7 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
-	github.com/go-playground/validator/v10 v10.10.0 // indirect
+	github.com/go-playground/validator/v10 v10.10.1 // indirect
 	github.com/go-sql-driver/mysql v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
-	github.com/gomarkdown/markdown v0.0.0-20220306001849-6e467e7bd3e8 // indirect
+	github.com/gomarkdown/markdown v0.0.0-20220310201231-552c6011c0b8 // indirect
 	github.com/gorilla/css v1.0.0 // indirect
 	github.com/iancoleman/strcase v0.2.0 // indirect
 	github.com/jackc/chunkreader/v2 v2.0.1 // indirect
@@ -34,9 +34,9 @@ require (
 	github.com/jackc/pgtype v1.10.0 // indirect
 	github.com/jackc/pgx/v4 v4.15.0 // indirect
 	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.1.4 // indirect
+	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/json-iterator/go v1.1.12 // indirect
-	github.com/klauspost/compress v1.14.4 // indirect
+	github.com/klauspost/compress v1.15.1 // indirect
 	github.com/leekchan/gtf v0.0.0-20190214083521-5fba33c5b00b // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
@@ -55,13 +55,14 @@ require (
 	github.com/tdewolff/minify/v2 v2.10.0 // indirect
 	github.com/tdewolff/parse/v2 v2.5.27 // indirect
 	github.com/ugorji/go/codec v1.2.7 // indirect
-	github.com/urfave/cli/v2 v2.3.0 // indirect
+	github.com/urfave/cli/v2 v2.4.0 // indirect
 	github.com/wellington/go-libsass v0.9.2 // indirect
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2 // indirect
+	github.com/yookoala/realpath v1.0.0 // indirect
 	github.com/yosssi/gohtml v0.0.0-20201013000340-ee4748c638f4 // indirect
-	golang.org/x/crypto v0.0.0-20220307211146-efcb8507fb70 // indirect
+	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
-	golang.org/x/sys v0.0.0-20220307203707-22a9840ba4d7 // indirect
+	golang.org/x/sys v0.0.0-20220317061510-51cd9980dadf // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
