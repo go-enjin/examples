@@ -233,9 +233,6 @@ unlocal: enjenv
 	@${CMD} ${ENJENV_EXE} go-unlocal
 
 be-update: golang
-	@echo "# go clean ${GO_ENJIN_PKG} ${EXTRA_PKGS}"
-	@source "${ENJENV_PATH}/activate" \
-		&& ${CMD} go clean ${GO_ENJIN_PKG} ${EXTRA_PKGS}
 	@echo "# go get -u ${GO_ENJIN_PKG} ${EXTRA_PKGS}"
 	@source "${ENJENV_PATH}/activate" \
 		&& ${CMD} GOPROXY=direct go get -u \
