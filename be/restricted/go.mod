@@ -2,7 +2,7 @@ module github.com/go-enjin/examples/be/restricted
 
 go 1.17
 
-require github.com/go-enjin/be v0.0.0-20220317002737-0cd2b3af4885
+require github.com/go-enjin/be v0.0.0-20220317004331-6887cb851fd0
 
 require (
 	github.com/BurntSushi/toml v1.0.0 // indirect
