@@ -20,94 +20,100 @@ import (
 
 	"github.com/go-enjin/be"
 	"github.com/go-enjin/be/features/fs/locals/public"
-	"github.com/go-enjin/be/features/restrict/basic"
+	"github.com/go-enjin/be/features/restrict/basic-auth"
 )
 
 func main() {
+	common := `
+{{ if .BasicUsername }}
+<p>Hello {{ .BasicUsername }}</p>
+{{ end }}
+<ul>
+	<li><a href="/">Home</a></li>
+	<li><a href="/users">Any User</a></li>
+	<li><a href="/only-ones">Only Ones</a></li>
+	<li><a href="/ones-twos">Ones Twos</a></li>
+	<li>
+		<p>Any authenticated user can visit any sub-path of: "/this-path*"</p>
+		<ul>
+			<li><a href="/this-path/one">this-path: one</a></li>
+			<li><a href="/this-path/two">this-path: two</a></li>
+			<li><a href="/this-path-too">this-path-too</a></li>
+		</ul>
+		<p>However, "/this-path/is-ignored" is configured to be ignored by Basic
+		Auth completely.</p>
+		<ul>
+			<li><a href="/this-path/is-ignored/one">this-path/is-ignored: one</a></li>
+			<li><a href="/this-path/is-ignored/two">this-path/is-ignored: two</a></li>
+			<li><a href="/this-path/is-ignored-too">this-path/is-ignored-too</a></li>
+		</ul>
+	</li>
+</ul>
+`
 	homepage := `+++
 Title = "Home"
 Format = "tmpl"
 +++
 <h2>Example Homepage</h2>
-{{ if .BasicUsername }}
-<p>Hello {{ .BasicUsername }}</p>
-{{ end }}
 <p>This content is an html/template and this string should contain the value of
 a context variable set at compile-time: "{{ .CustomVariable }}".</p>
-<ul>
-	<li><a href="/">Home</a></li>
-	<li><a href="/users">Any User</a></li>
-	<li><a href="/only-ones">Only Ones</a></li>
-	<li><a href="/ones-twos">Ones Twos</a></li>
-</ul>
-`
+` + common
 	anyUser := `+++
 Title = "Any User"
 Format = "tmpl"
-RestrictBasic = ["users"]
+BasicAuthGroups = ["users"]
 +++
 <h2>Any User</h2>
-{{ if .BasicUsername }}
-<p>Hello {{ .BasicUsername }}</p>
-{{ end }}
 <p>Any authenticated user can see this content.</p>
 <p>This content is an html/template and this string should contain the value of
 a context variable set at compile-time: "{{ .CustomVariable }}".</p>
-<ul>
-	<li><a href="/">Home</a></li>
-	<li><a href="/users">Any User</a></li>
-	<li><a href="/only-ones">Only Ones</a></li>
-	<li><a href="/ones-twos">Ones Twos</a></li>
-</ul>
-`
+` + common
+
 	onlyOnesTmpl := `+++
 Title = "Only Ones"
 Format = "tmpl"
-RestrictBasic = ["only-ones"]
+BasicAuthGroups = ["only-ones"]
 +++
 <h2>Only Ones</h2>
-{{ if .BasicUsername }}
-<p>Hello {{ .BasicUsername }}</p>
-{{ end }}
 <p>Only users in the group of "only-ones" can see this content.</p>
 <p>This content is an html/template and this string should contain the value of
 a context variable set at compile-time: "{{ .CustomVariable }}".</p>
-<ul>
-	<li><a href="/">Home</a></li>
-	<li><a href="/users">Any User</a></li>
-	<li><a href="/only-ones">Only Ones</a></li>
-	<li><a href="/ones-twos">Ones Twos</a></li>
-</ul>
-`
+` + common
 	onesTwosOrg := `+++
 Title = "Ones Twos"
 Format = "tmpl"
-RestrictBasic = ["ones-twos"]
+BasicAuthGroups = ["ones-twos"]
 +++
 <h2>Ones Twos</h2>
 <p>Only users in the group of "ones-twos" can see this content.</p>
 <p>This content is an html/template and this string should contain the value of
 a context variable set at compile-time: "{{ .CustomVariable }}".</p>
-{{ if .BasicUsername }}
-<p>Hello {{ .BasicUsername }}</p>
-{{ end }}
-<ul>
-	<li><a href="/">Home</a></li>
-	<li><a href="/users">Any User</a></li>
-	<li><a href="/only-ones">Only Ones</a></li>
-	<li><a href="/ones-twos">Ones Twos</a></li>
-</ul>
-`
+` + common
+	testingTmpl := `+++
+Format = "tmpl"
++++
+<h2>testing</h2>
+<p>This page may or may not require authentication.</p>
+<p>This content is an html/template and this string should contain the value of
+a context variable set at compile-time: "{{ .CustomVariable }}".</p>
+` + common
 	enjin := be.New().
 		Set("CustomVariable", "not-empty").
 		AddPageFromString("/", homepage).
 		AddPageFromString("/users", anyUser).
 		AddPageFromString("/only-ones", onlyOnesTmpl).
 		AddPageFromString("/ones-twos", onesTwosOrg).
+		AddPageFromString("/this-path/one", testingTmpl).
+		AddPageFromString("/this-path/two", testingTmpl).
+		AddPageFromString("/this-path-too", testingTmpl).
+		AddPageFromString("/this-path/is-ignored/one", testingTmpl).
+		AddPageFromString("/this-path/is-ignored/two", testingTmpl).
+		AddPageFromString("/this-path/is-ignored-too", testingTmpl).
 		AddFeature(public.New().MountPath("/", "public").Make()).
 		AddFeature(
-			basic.New().
-				RestrictAllData(true).
+			auth.New().
+				Restrict("/this-path", "users").
+				IgnoreLeadingPaths("/this-path/is-ignored").
 				Htpasswd("auth/one.htpasswd", "auth/two.htpasswd").
 				Htgroups("auth/one.htgroup", "auth/two.htgroup", "auth/many.htgroup").
 				Make(),

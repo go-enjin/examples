@@ -30,7 +30,7 @@ STRICT        ?= false
 DOMAIN        ?=
 DENY_DURATION ?= 86400
 
-BUILD_TAGS = restricted,locals
+BUILD_TAGS = basic_auth,locals
 EXTRA_PKGS =
 
 GOLANG ?= 1.17.7
