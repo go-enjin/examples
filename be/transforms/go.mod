@@ -3,7 +3,7 @@ module github.com/go-enjin/examples/be/transforms
 go 1.17
 
 require (
-	github.com/go-enjin/be v0.0.0-20220317193321-35f0bbd43f2d
+	github.com/go-enjin/be v0.0.0-20220320203010-7184ee771f2e
 	github.com/go-enjin/third_party/features/outputs/sass v0.0.0-20220308211524-081a9a6fc99c
 )
 
@@ -62,7 +62,7 @@ require (
 	github.com/yosssi/gohtml v0.0.0-20201013000340-ee4748c638f4 // indirect
 	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
-	golang.org/x/sys v0.0.0-20220317061510-51cd9980dadf // indirect
+	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
@@ -72,5 +72,5 @@ require (
 	gorm.io/driver/mysql v1.3.2 // indirect
 	gorm.io/driver/postgres v1.3.1 // indirect
 	gorm.io/driver/sqlite v1.3.1 // indirect
-	gorm.io/gorm v1.23.2 // indirect
+	gorm.io/gorm v1.23.3 // indirect
 )
