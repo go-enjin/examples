@@ -17,53 +17,260 @@
 #: uncomment to echo instead of execute
 #CMD=echo
 
-BE_LOCAL_PATH ?= ../../../be
+SHELL = /bin/bash
+
+BE_PATH ?= ../../../be
+
+ENJENV_BIN ?= $(shell which enjenv)
 
 DEBUG ?= false
 
 APP_NAME    ?= be-transforms
-APP_SUMMARY ?= Sass Filter Enjin
-APP_VERSION ?= $(shell enjenv git-tag --untagged v0.0.1)
-REL_VERSION ?= $(shell enjenv rel-ver)
+APP_SUMMARY ?= Transforms Enjin
 ENV_PREFIX  ?= BE
 
+LISTEN        ?=
+PORT          ?= 3334
+PREFIX        ?= ${USER}
+DEBUG         ?= false
+STRICT        ?= false
+DOMAIN        ?=
+DENY_DURATION ?= 86400
+
 BUILD_TAGS = locals,outputs,sass
+EXTRA_PKGS =
 
-RELEASE = ""
+GOLANG ?= 1.17.7
+NODEJS ?=
 
-.PHONY: all help clean build dev release run
+RELEASE_BUILD = false
+
+GO_ENJIN_PKG = github.com/go-enjin/be
+
+.PHONY: all help clean local unlocal tidy build dev release run enjenv golang
 
 help:
-	@echo "usage: make <help|clean|build|dev|release|run>"
+	@echo "${APP_NAME} - ${APP_SUMMARY}"
+	@echo
+	@echo "This is a Go-Enjin project which depends upon enjenv to"
+	@echo "manage the Golang and Nodejs SDKs and build this Enjin."
+	@echo
+	@echo "usage: make <clean|dist-clean|build|dev|release|run>"
+	@echo
+	@echo "cleanup targets:"
+	@echo "  clean       remove built binary"
+	@echo "  dist-clean  clean and purge local .bin ${ENJENV_DIR}"
+	@echo
+	@echo "compile targets:"
+	@echo "  build       build a debug-able version of ${APP_NAME}"
+	@echo "  release     build a release version of ${APP_NAME}"
+	@echo
+	@echo "runtime targets:"
+	@echo "  dev         set for DEBUG mode and run ./${APP_NAME}"
+	@echo "  run         execute ./${APP_NAME}"
+	@echo
+	@echo "dependency targets:"
+	@echo "  enjenv      install enjenv if not already present"
+	@echo "  golang      enjenv init golang if not already present"
+	@echo "  nodejs      enjenv init nodejs if not already present"
+	@echo
+	@echo "helper targets:"
+	@echo "  help        this screen of output"
+	@echo "  tidy        run go mod tidy -go=1.16 && -go=1.17"
+	@echo "  local       add go mod -replace for ${GO_ENJIN_PKG}"
+	@echo "  unlocal     go mod -dropreplace for ${GO_ENJIN_PKG}"
+	@echo "  be-update   go clean and get -u ${GO_ENJIN_PKG}"
+
+define _be_local_path =
+$(shell \
+	if [ "${BE_LOCAL_PATH}" != "" -a -d "${BE_LOCAL_PATH}" ]; then \
+		echo "${BE_LOCAL_PATH}"; \
+	elif [ "${GOPATH}" != "" ]; then \
+		if [ -d "${GOPATH}/src/${GO_ENJIN_PKG}" ]; then \
+			echo "${GOPATH}/src/${GO_ENJIN_PKG}"; \
+		fi; \
+	fi)
+endef
+
+define _be_version =
+$(shell ${ENJENV_EXE} git-tag --untagged v0.0.0)
+endef
+
+define _be_release =
+$(shell ${ENJENV_EXE} rel-ver)
+endef
+
+define _enjenv_bin =
+$(shell \
+	if [ "${ENJENV_BIN}" != "" -a -x "${ENJENV_BIN}" ]; then \
+		echo "${ENJENV_BIN}"; \
+	else \
+		if [ "$(1)" != "" ]; then \
+			echo "$(1)"; \
+		elif [ -d .bin -a -x .bin/enjenv ]; then \
+			echo "${PWD}/.bin/enjenv"; \
+		fi; \
+	fi)
+endef
+
+define _enjenv_path =
+$(shell \
+	if [ -x "${ENJENV_EXE}" ]; then \
+		${ENJENV_EXE}; \
+	elif [ -d "./${ENJENV_DIR}" ]; then \
+		echo "${PWD}/${ENJENV_DIR}"; \
+	fi)
+endef
+
+define _build_tags =
+$(shell if [ "${BUILD_TAGS}" != "" ]; then echo "-tags ${BUILD_TAGS}"; fi)
+endef
+
+define _build_label =
+$(shell \
+	if [ "${RELEASE_BUILD}" == "true" ]; then \
+		echo "Building release"; \
+	else \
+		echo "Building"; \
+	fi)
+endef
+
+define _build_args =
+$(shell \
+	if [ "${RELEASE_BUILD}" == "true" ]; then \
+		echo "--optimize"; \
+	fi)
+endef
+
+define _env_build_vars =
+BE_APP_NAME="${APP_NAME}" \
+BE_SUMMARY="${APP_SUMMARY}" \
+BE_ENV_PREFIX="${ENV_PREFIX}" \
+BE_VERSION="${VERSION}" \
+BE_RELEASE="${RELEASE}"
+endef
+
+define _env_run_vars =
+${ENV_PREFIX}_DEBUG="${DEBUG}" \
+${ENV_PREFIX}_LISTEN="${LISTEN}" \
+${ENV_PREFIX}_PORT="${PORT}" \
+${ENV_PREFIX}_PREFIX="${PREFIX}" \
+${ENV_PREFIX}_STRICT="${STRICT}" \
+${ENV_PREFIX}_DOMAIN="${DOMAIN}" \
+${ENV_PREFIX}_DENY_DURATION="${DENY_DURATION}"
+endef
+
+BE_PATH ?= $(call _be_local_path)
+
+ENJENV_EXE ?= $(call _enjenv_bin,$(shell which enjenv))
+ENJENV_URL ?= https://github.com/go-enjin/enjenv-heroku-buildpack/raw/trunk/bin/enjenv
+ENJENV_PKG ?= github.com/go-enjin/enjenv/cmd/enjenv@latest
+ENJENV_DIR_NAME ?= .enjenv
+ENJENV_DIR ?= ${ENJENV_DIR_NAME}
+ENJENV_PATH ?= $(call _enjenv_path)
+
+VERSION ?= $(call _be_version)
+RELEASE ?= $(call _be_release)
+
+enjenv: gobin=$(shell which go)
+enjenv:
+	@if [ "${ENJENV_EXE}" = "" ]; then \
+		if [ "${gobin}" = "" ]; then \
+			echo "# downloading enjenv..."; \
+			wget -q -c ${ENJENV_URL}; \
+			chmod +x ./enjenv; \
+			echo "# installing enjenv..."; \
+			if [ "${GOPATH}" = "" ]; then \
+				mkdir -v .bin; \
+				mv -v ./enjenv ./.bin/; \
+			else \
+				mv -v ./enjenv ${GOPATH}/bin/enjenv; \
+			fi; \
+		else \
+			echo "# go install enjenv..."; \
+			go install ${ENJENV_PKG}; \
+		fi; \
+	fi
+
+golang: enjenv
+	@if [ "${ENJENV_PATH}" != "" ]; then \
+		if [ ! -d "${ENJENV_PATH}/golang" ]; then \
+			if [ "${GOLANG}" != "" ]; then \
+				${CMD} ${ENJENV_EXE} golang init --golang "${GOLANG}"; \
+				${CMD} ${ENJENV_EXE} write-scripts; \
+			else \
+				${CMD} ${ENJENV_EXE} golang init; \
+				${CMD} ${ENJENV_EXE} write-scripts; \
+			fi; \
+		fi; \
+		if [ "${NODEJS}" != "" ]; then \
+			if [ ! -d "${ENJENV_PATH}/nodejs" ]; then \
+				${CMD} ${ENJENV_EXE} nodejs init --nodejs "${NODEJS}"; \
+				${CMD} ${ENJENV_EXE} write-scripts; \
+			fi; \
+		fi; \
+	else \
+		echo "# missing enjenv path"; \
+		false; \
+	fi
+
+tidy: golang
+	@echo "# go mod tidy -go=1.16 && go mod tidy -go=1.17"
+	@source "${ENJENV_PATH}/activate" \
+		&& ${CMD} go mod tidy -go=1.16 \
+		&& ${CMD} go mod tidy -go=1.17
+
+local: enjenv
+	@if [ "${BE_PATH}" = "" ]; then \
+		echo "missing BE_PATH"; \
+		false; \
+	fi
+	@echo "# localizing ${GO_ENJIN_PKG}"
+	@${CMD} ${ENJENV_EXE} go-local "${BE_PATH}"
+
+unlocal: enjenv
+	@echo "# restoring ${GO_ENJIN_PKG}"
+	@${CMD} ${ENJENV_EXE} go-unlocal
+
+be-update: golang
+	@echo "# go get -u ${GO_ENJIN_PKG} ${EXTRA_PKGS}"
+	@source "${ENJENV_PATH}/activate" \
+		&& ${CMD} GOPROXY=direct go get -u \
+			$(call _build_tags) \
+			${GO_ENJIN_PKG} \
+			${EXTRA_PKGS}
 
 clean:
 	@if [ -f "${APP_NAME}" ]; then rm -fv "${APP_NAME}"; fi
 
-build: LABEL=$(shell if [ "${RELEASE}" = "true" ]; then echo "Building release"; else echo "Building"; fi)
-build: OPTION=$(shell if [ "${RELEASE}" = "true" ]; then echo "--optimize"; fi)
-build:
-	@echo "${LABEL}: ${APP_VERSION}, ${REL_VERSION}"
-	@${CMD} enjenv golang build \
-			--be-app-name "${APP_NAME}" \
-			--be-summary "${APP_SUMMARY}" \
-			--be-version "${APP_VERSION}" \
-			--be-release "${REL_VERSION}" \
-			--be-env-prefix "${ENV_PREFIX}" \
-			${OPTION} -- -v -tags=${BUILD_TAGS}
+dist-clean: clean
+	@if [ -d "./${ENJENV_DIR}" ]; then \
+		ENJENV_PATH="${PWD}/${ENJENV_DIR}" ${ENJENV_EXE} clean --force; \
+	fi
+	@if [ -d .bin ]; then \
+		rm -rfv .bin; \
+	fi
 
-release: RELEASE="true"
+build: golang
+	@echo "$(call _build_label): ${VERSION}, ${RELEASE}"
+	@${CMD} \
+		$(call _env_build_vars) \
+		${ENJENV_EXE} golang build \
+			$(call _build_opts) \
+			-- -v $(call _build_tags)
+
+release: RELEASE_BUILD="true"
 release: build
 
 run:
-	@if [ -x "${APP_NAME}" ]; then \
-		echo "# running ${APP_NAME}"; \
-		${ENV_PREFIX}_DEBUG=${DEBUG} ./${APP_NAME}; \
-	else \
-		echo "# ${APP_NAME} not found"; \
+	@if [ ! -x "${APP_NAME}" ]; then \
+		echo "# ${APP_NAME} not found or not executable"; \
+		false; \
 	fi
+	@echo "# running ${APP_NAME}"
+	@${CMD} \
+		$(call _env_run_vars) \
+		./${APP_NAME}
 
 dev: DEBUG=true
 dev: run
-
-tidy:
-	@go mod tidy -go=1.16 && go mod tidy -go=1.17

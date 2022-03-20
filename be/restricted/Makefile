@@ -16,11 +16,18 @@
 
 #: uncomment to echo instead of execute
 #CMD=echo
+
 SHELL = /bin/bash
+
+BE_PATH ?= ../../../be
+
+ENJENV_BIN ?= $(shell which enjenv)
+
+DEBUG ?= false
 
 APP_NAME    ?= be-restricted
 APP_SUMMARY ?= Restricted Enjin
-ENV_PREFIX  ?= RST
+ENV_PREFIX  ?= BE
 
 LISTEN        ?=
 PORT          ?= 3334
@@ -40,7 +47,7 @@ RELEASE_BUILD = false
 
 GO_ENJIN_PKG = github.com/go-enjin/be
 
-.PHONY: help clean build dev release run enjenv golang
+.PHONY: all help clean local unlocal tidy build dev release run enjenv golang
 
 help:
 	@echo "${APP_NAME} - ${APP_SUMMARY}"
@@ -154,7 +161,6 @@ ${ENV_PREFIX}_DEBUG="${DEBUG}" \
 ${ENV_PREFIX}_LISTEN="${LISTEN}" \
 ${ENV_PREFIX}_PORT="${PORT}" \
 ${ENV_PREFIX}_PREFIX="${PREFIX}" \
-${ENV_PREFIX}_DEBUG="${DEBUG}" \
 ${ENV_PREFIX}_STRICT="${STRICT}" \
 ${ENV_PREFIX}_DOMAIN="${DOMAIN}" \
 ${ENV_PREFIX}_DENY_DURATION="${DENY_DURATION}"
@@ -254,10 +260,10 @@ dist-clean: clean
 build: golang
 	@echo "$(call _build_label): ${VERSION}, ${RELEASE}"
 	@${CMD} \
-			$(call _env_build_vars) \
-			${ENJENV_EXE} golang build \
-				$(call _build_opts) \
-				-- -v $(call _build_tags)
+		$(call _env_build_vars) \
+		${ENJENV_EXE} golang build \
+			$(call _build_opts) \
+			-- -v $(call _build_tags)
 
 release: RELEASE_BUILD="true"
 release: build
@@ -265,9 +271,12 @@ release: build
 run:
 	@if [ ! -x "${APP_NAME}" ]; then \
 		echo "# ${APP_NAME} not found or not executable"; \
+		false; \
 	fi
 	@echo "# running ${APP_NAME}"
-	@${CMD} $(call _env_run_vars) ./${APP_NAME}
+	@${CMD} \
+		$(call _env_run_vars) \
+		./${APP_NAME}
 
 dev: DEBUG=true
 dev: run
