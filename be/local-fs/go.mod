@@ -2,7 +2,7 @@ module github.com/go-enjin/examples/be/local-fs
 
 go 1.17
 
-require github.com/go-enjin/be v0.0.0-20220320203010-7184ee771f2e
+require github.com/go-enjin/be v0.0.0-20220322160247-935ba4723e61
 
 require (
 	github.com/BurntSushi/toml v1.0.0 // indirect
@@ -55,12 +55,12 @@ require (
 	github.com/urfave/cli/v2 v2.4.0 // indirect
 	github.com/x-cray/logrus-prefixed-formatter v0.5.2 // indirect
 	github.com/yookoala/realpath v1.0.0 // indirect
-	golang.org/x/crypto v0.0.0-20220315160706-3147a52a75dd // indirect
+	golang.org/x/crypto v0.0.0-20220321153916-2c7772ba3064 // indirect
 	golang.org/x/net v0.0.0-20220225172249-27dd8689420f // indirect
 	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	golang.org/x/text v0.3.7 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 	gorm.io/driver/mysql v1.3.2 // indirect
